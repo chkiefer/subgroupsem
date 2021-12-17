@@ -1,162 +1,218 @@
 #' @export
-#' @title Function \code{subgroupsem()}.
-#' @description Interface to the python module pysubgroup for efficiently 
-#' finding subgroups.
-#' @param f_fit Function to be fitted. Must take at least two arguments. 
-#' \code{f_fit} has the signature \code{function(group, dat, ...)}. \code{group} 
-#' is a numeric vector. The length of this vector equals the rows in the data 
-#' frame \code{dat} and is to be interpreted as an additional column indicating 
-#' the group assignment. \code{f_fit} returns the interestingness measure. 
+#' @title Subgroup discovery algorithms for use with structural equation models
+#' @description This function is the main function of the package and can be
+#' flexibly used to interface the python module pysubgroup for efficiently
+#' finding subgroups in structural equation models estimated by the R package
+#' lavaan.
+#' @param f_fit Function to be fitted. Must take at least two arguments.
+#' \code{f_fit} has the signature \code{function(group, dat, ...)}. \code{group}
+#' is a numeric vector. The length of this vector equals the rows in the data
+#' frame \code{dat} and is to be interpreted as an additional column indicating
+#' the group assignment. \code{f_fit} returns the interestingness measure.
 #' Returned values should be greater than \code{min_quality} in case of sucess
 #' and smaller in case of failure (e.g., non-convergence, error).
 #' @param dat A data frame.
-#' @param columns Column names of the provided data frame which are to be 
+#' @param columns Column names of the provided data frame which are to be
 #' analysed. Columns must have ordinal or nominal scale.
-#' @param ignore Optional argument. If \code{columns = NULL}, \code{ignore} will 
+#' @param ignore Optional argument. If \code{columns = NULL}, \code{ignore} will
 #' be used to select every column that is not in ignore.
+#' @param algorithm A character specifying the subgroup discovery algorithm to
+#' use. An exhaustive depth-first search is provided with 'SimpleDFS' (default)
+#' . A heuristic (non-exhaustive) Beam search is provided with 'Beam', but not
+#' yet implemented.
 #' @param max_n_subgroups Maximum number of subgroups. Default is 10.
 #' @param search_depth Maximum number of attribute combinations. Default is 3.
-#' @param min_quality Minimum value of interestingness measure. Values below 
+#' @param min_quality Minimum value of interestingness measure. Values below
 #' will not be considered. Default is 0.
-#' @param weighting_attr Column name of a weighting attribute. Default is NULL 
-#' (disabled). Not implemented yet.
-#' @param generalization_aware Boolean. If specified, redundancy reduction is 
-#' used. Default is TRUE.
-#' @param na_rm Boolean. Default is FALSE. If set to TRUE, cases with NA values on any column 
-#' will be set to FALSE in the \code{sg} vector. If set to FALSE, the regarding 
-#' in the \code{sg} vector will be also \code{NA}.
+#' @param min_subgroup_size Minimum size of a subgroup. Subgroups with sizes
+#' below will not be considered. Not implemented yet.
+#' @param na_rm Boolean. Default is FALSE. If set to TRUE, cases with NA values
+#' on any column will be set to FALSE in the \code{sg} vector. If set to FALSE,
+#' the regarding in the \code{sg} vector will be also \code{NA}.
+#' @param weighting_attr This option is \emph{deprecated}.
+#' @param generalization_aware This option is \emph{deprecated}.
 #' @param ... Additional arguments to be passed to \code{f_fit}.
 #' @return List containing the time consumed and the groups.
 #' @examples
-#' if (FALSE){
-#' library(EffectLiteR)
-#' 
-#' dat <- read.csv(system.file("extdata", 
-#'                             "data_kirchmann.csv", 
-#'                             package="subgroupsem"))
-#' 
-#' # columns <- names(dat)[!(names(dat) %in% c("ind", "CESD_3", "CESD_1", "x"))]
-#' columns <- c("Educ_d1", "Educ_d2", "Educ_d3", "Educ_d4")
-#' 
-#' f_fit <- function(sg, dat) {
-#'     dat <- dat[sg == 1, ]
-#'     
-#'     res <- tryCatch({
-#'         fit <- effectLite(y="CESD_3", x="x", data=dat)
-#'         abs(fit@results@Egx[[1]])
-#'     }, error = function(e) -1)
+#' if (FALSE) {
+#'     model <- "
+#'      eta1 =~ NA*x1 + x2 + x3
+#'      eta2 =~ NA*x4 + x5 + x6
+#'      eta3 =~ NA*x7 + x8 + x9
 #'
-#'     return(res)
+#'      eta1 ~~ 1*eta1
+#'      eta2 ~~ 1*eta2
+#'      eta3 ~~ 1*eta3
+#'
+#'      eta1 + eta2 + eta3 ~ 0*1
+#'      "
+#'
+#'     f_fit <- function(sg, dat) {
+#'         # Add subgroup to dataset (from logical to numeric)
+#'         sg <- as.numeric(sg)
+#'         dat$subgroup <- sg
+#'
+#'         # if all participants in subgroup return -1
+#'         if (all(sg == 1)) {
+#'             rval <- 0
+#'             return(rval)
+#'         }
+#'         rval <- tryCatch(
+#'             {
+#'                 # Fit Model
+#'                 fit <- sem(model, data = dat, group = "subgroup")
+#'                 stopifnot(lavInspect(fit, "post.check"))
+#'
+#'                 # Compute interestingness measure
+#'                 tmp <- partable(fit)
+#'                 lam1 <- tmp$est[
+#'                     tmp$lhs == "eta1" &
+#'                         tmp$op == "=~" & tmp$group == 1
+#'                 ]
+#'                 lam2 <- tmp$est[
+#'                     tmp$lhs == "eta1" &
+#'                         tmp$op == "=~" &
+#'                         tmp$group == 2
+#'                 ]
+#'                 difflam <- abs(lam2 - lam1)
+#'                 rval <- sum(sg, na.rm = T)^0.5 * sum(difflam)
+#'             },
+#'             error = function(e) -1
+#'         )
+#'
+#'         if (!is.numeric(rval) | length(rval) > 1) {
+#'             rval <- -1
+#'         }
+#'
+#'         return(rval)
+#'     }
+#'
+#'     m1 <- subgroupsem(
+#'         f_fit = f_fit,
+#'         dat = HolzingerSwineford1939,
+#'         columns = c("sex", "school", "grade")
+#'     )
+#'     summary(m1)
 #' }
-#' 
-#' task <- subgroupsem(f_fit = f_fit,
-#'                     dat = dat,
-#'                     columns = columns)
-#' 
-#' summary(task)
-#' 
-#' plot(task)
-#' }
-#' 
+#' @importFrom reticulate import_main import py_run_string
+#' @import lavaan
 subgroupsem <- function(f_fit,
                         dat,
                         columns = names(dat),
-                        ignore  = NULL,
+                        ignore = NULL,
+                        algorithm = "SimpleDFS",
                         max_n_subgroups = 10,
                         search_depth = 3,
                         min_quality = 0,
+                        min_subgroup_size = NULL,
                         weighting_attr = NULL,
-                        generalization_aware = TRUE,
+                        generalization_aware = FALSE,
                         na_rm = FALSE,
                         ...) {
-    
-    ## check if reticulate has been properly loaded
-    if (!.pkgglobalenv$reticulate_loaded) {
-        stop(
-            "reticulate has not beend loaded properly. Function init_reticulate() may help you fix the issue.",
-            call. = FALSE
+
+    # Some checks due to the refactoring arguments may be deprecated
+    # Weighting attribute was never implemented and is currently not planned
+    if (!is.null(weighting_attr)) {
+        warning(
+            paste(
+                "subgroupsem warning:",
+                "Option 'weighting_attr' is deprecated and will not be used."
+            )
         )
     }
-    
-    ## push data, functions and parameters to python
-    py$data <- dat
-    
-    if (!is.null(ignore)) {
-        columns <- columns[!(columns %in% ignore)]
+
+    # Generalization awareness was implemented before,
+    # but not sure whether it is useful
+    if (generalization_aware) {
+        warning(
+            paste(
+                "subgroupsem warning:",
+                "Option 'generalization_aware' is deprecated and will not be used."
+            )
+        )
     }
-    py$ignore_names <- names(dat)[!(names(dat) %in% columns)]
-    
+
+    # Some lines to check, whether reticulate / Python is set up correctly...
+    # TODO
+
+    # Import Python environment, pysubgroup module, and semtarget class
+    py_main <- import_main()
+    py_main$ps <- import("pysubgroup")
+    py_run_string(get_py_classes())
+
+    ## push data and f_fit function to python
+    py_main$data <- dat
+
+    ## TODO: maybe it would be easier to extend the class Conjunction
+    ## for the complement...
     ## get matrix of NAs
-    has_na <- sapply(columns, function(column) is.na(dat[,column]))
-    
+    has_na <- sapply(columns, function(column) is.na(dat[, column]))
+
     f_fit_internal <- function(sg, selectors = NULL) {
+        # Empty selectors are transfered as empty list...
+        if (is.list(selectors)) selectors <- unlist(selectors)
         ## if selectors for subgroup is not NULL
         if (!na_rm && !is.null(selectors)) {
             ## if case has NA in one of the selectors, insert NA
-            has_na_selectors <- apply(has_na[,selectors,drop=F], 1, any)
+            has_na_selectors <- apply(has_na[, selectors, drop = F], 1, any)
             sg <- ifelse(has_na_selectors, NA, sg)
         }
         ## pass sg and dat to user specified function
-        return(f_fit(sg, dat, ...))
+        return(f_fit(sg, dat))
     }
-    py$f_fit <- f_fit_internal
-    
-    ## calculate interestingness measure for the whole data
-    quality_global <- f_fit_internal(rep_len(1, nrow(dat)))
-    
-    ## run pysubgroup package
-    py_run_string("target = SEMTarget()")
-    
-    py_run_string("searchSpace = ps.create_selectors(data, ignore=ignore_names)")
-    # py_run_string(paste0(
-    #     "task = ps.SubgroupDiscoveryTask(data, target, searchSpace, ",
-    #     "result_set_size=", max_n_subgroups,
-    #     ", depth=", search_depth,
-    #     ", min_quality=", min_quality,
-    #     ", weighting_attribute=",
-    #         if (is.null(weighting_attr)) "None" else paste0('"', weighting_attr, '"'),
-    #     ", qf=",
-    #         if (generalization_aware) "GeneralizationAwareQF(TestQF())" else "TestQF()",
-    #     ")",
-    # ))
-    py_run_string(paste0(
-        "task = ps.SubgroupDiscoveryTask(data, target, searchSpace, ",
-        "result_set_size=", max_n_subgroups,
-        ", depth=", search_depth,
-        ", min_quality=", min_quality,
-        ", weighting_attribute=",
-        if (is.null(weighting_attr)) "None" else paste0('"', weighting_attr, '"'),
-        ", qf=",
-        if (generalization_aware) "GeneralizationAwareQF(TestQF())" else "TestQF()",
-        ")"
-    ))
-    
-    py_run_string("start = timer()")
-    py_run_string("result = ps.SimpleDFS().execute(task)")
-    py_run_string("end = timer()")
-    
-    
-    ## collect results
-    py_run_string("
-summary = []
-for i in range(len(result)):
-    summary.append([result[i][0], result[i][1].subgroup_description.to_string(), result[i][1].subgroup_description.covers(data)])
-")
-    groups <- py$summary
-    groups <- lapply(1:length(groups), function(index) {
-        group <- groups[[index]]
-        group <- c(index = index, group)
-        names(group) <- c("index", "quality", "description", "cases")
-        group
-    })
-    names(groups) <- paste0("Subgroup", 1:length(groups))
-    
-    # print('q: '+ str(q) + '\t Subgroup: ' + str(sg.subgroup_description) + '\t Size: ' + str(sg.statistics['size_sg']))"
-    results <- list(time_elapsed = py$end - py$start,
-                    quality_global = quality_global,
-                    subgroups = groups)
-    
+    py_main$f_fit <- f_fit_internal
+
+    # RUN PYSUBGROUP ROUTINE
+    # 1. Define target class
+    py_main$target <- py_main$SEMTarget()
+
+    # 2. Define selector variables, i.e. variables named in columns
+    # and not excluded through ignore
+    if (!is.null(ignore)) {
+        columns <- columns[!(columns %in% ignore)]
+    }
+    ignore_names <- names(dat)[!(names(dat) %in% columns)]
+    py_main$searchspace <- py_main$ps$create_selectors(
+        dat,
+        ignore = ignore_names
+    )
+
+    # 3. Specify the subgroup discovery task by passing all required
+    # arguments to the respective Python function
+    py_main$task <- py_main$ps$SubgroupDiscoveryTask(
+        py_main$data,
+        py_main$target,
+        py_main$searchspace,
+        qf = py_main$SEM_QF(),
+        result_set_size = max_n_subgroups,
+        depth = search_depth,
+        min_quality = min_quality,
+        constraints = NULL
+    )
+
+    # 4. Specify and run the search algorithm
+    # only DFS implemented at the moment
+    # Beam search should follow shortly
+    # Double beam search, perhaps?
+    start <- Sys.time()
+    if (algorithm == "SimpleDFS" | algorithm == "DFS") {
+        py_run_string("result = ps.SimpleDFS().execute(task)")
+    } else {
+        warning(
+            paste(
+                "subgroupsem warning:",
+                "Currently only depth-first-search (DFS) available as algorithm."
+            )
+        )
+    }
+    end <- Sys.time()
+
+    # Import results
+    results <- list(
+        time_elapsed = end - start,
+        summary_statistics = py_main$result$to_dataframe()
+    )
     class(results) <- "subgroupsem"
-    
+
     return(results)
 }

@@ -2,11 +2,11 @@ from pysubgroup.measures import AbstractInterestingnessMeasure, \
     BoundedInterestingnessMeasure
 
 import numpy as np
-# from rpy2.robjects import r, pandas2ri
-# from rpy2 import robjects
 
 
 class SEMTarget(object):
+    statistic_types = ['size_sg']
+
     def __init__(self):
         pass
 
@@ -20,58 +20,36 @@ class SEMTarget(object):
         return str(self) < str(other)
 
     def get_attributes(self):
-        return []
+        return [] 
 
-#    def test(self):
-#        return myval
+    def calculate_statistics(self, subgroup, data, stats):
+        sg_instances = subgroup.covers(data)
 
-    def calculate_statistics(self, subgroup, data, weighting_attribute=None):
-        if weighting_attribute is not None:
-            raise NotImplemented("Attribute weights with SEM targets are not yet implemented.")
-        sg_instances = subgroup.subgroup_description.covers(data)
-        subgroup.statistics['size_sg'] = np.sum(sg_instances)
+        statistics = dict()
+        statistics['size_sg'] = np.sum(sg_instances)
+        return statistics
 
-class GeneralizationAwareQF(AbstractInterestingnessMeasure):
-    def __init__(self, qf):
-        self.qf = qf
-        self.cache = {}
 
-    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
-        q_subgroup = self.qf.evaluate_from_dataset (data, subgroup, weighting_attribute)
-
-        # compute quality of all generalizations
-        selectors = subgroup.subgroup_description.selectors
-        generalizations = ps.powerset(selectors)
-        max_q = 0
-        for sels in generalizations:
-            sgd = ps.SubgroupDescription(list(sels))
-            if frozenset(sgd.selectors) in self.cache:
-                q_sg = self.cache[frozenset(sgd.selectors)]
-            else:
-                sg = ps.Subgroup(subgroup.target, sgd)
-                q_sg = self.qf.evaluate_from_dataset (data, sg, weighting_attribute)
-                self.cache[frozenset(sgd.selectors)] = q_sg
-            max_q = max(max_q, q_sg)
-        return q_subgroup - max_q
-
-    def is_applicable(self, subgroup):
-        return self.qf.is_applicable(subgroup)
-
-    def supports_weights(self):
-        return self.qf.supports_weights()
-
-class TestQF(AbstractInterestingnessMeasure):
+class SEM_QF(AbstractInterestingnessMeasure):
     def __init__(self):
     	pass
 
-    def evaluate_from_dataset(self, data, subgroup, weighting_attribute=None):
-        if len(subgroup.subgroup_description) == 0:
-            return -1
-#        print(subgroup)
-        instances = subgroup.subgroup_description.covers(data)
-        variables = [str(selector.attribute_name) for selector in subgroup.subgroup_description.selectors]
+    # musste ich einfuegen. ist das neu?
+    def calculate_constant_statistics(self, data, target):
+        pass
 
-        if (instances.sum() < 10):
+    def calculate_statistics(self, subgroup, target, data):
+        pass
+
+    # Changed from "evaluate_from_data" to "calculate_statistics"
+    def evaluate(self, subgroup, target, data, statistics):
+        #if len(subgroup.covers) == 0:
+        #    return -1
+        instances = subgroup.covers(data)
+
+        variables = [str(selector.attribute_name) for selector in subgroup.selectors]
+        
+        if (instances.sum() < 50):
             return -1
 
         rval = f_fit(instances, variables)
@@ -83,3 +61,4 @@ class TestQF(AbstractInterestingnessMeasure):
 
     def supports_weights(self):
         return False
+

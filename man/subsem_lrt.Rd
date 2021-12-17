@@ -11,9 +11,31 @@ subsem_lrt(model, data, predictors = NULL)
 
 \item{data}{a data frame}
 
-\item{predictors}{a character vector of variable names, which are used as 
+\item{predictors}{a character vector of variable names, which are used as
 covariates/predictors in the subgroup discovery (variables in data)}
 }
 \description{
 todo
+}
+\examples{
+# Define lavaan model
+model <- "
+eta1 =~ NA*x1 + x2 + x3
+eta2 =~ NA*x4 + x5 + x6
+eta3 =~ NA*x7 + x8 + x9
+
+eta1 ~~ 1*eta1
+eta2 ~~ 1*eta2
+eta3 ~~ 1*eta3
+
+eta1 + eta2 + eta3 ~ 0*1
+"
+
+# Pass model, data and names of predictors to function
+m1 <- subsem_lrt(
+  model = model,
+  data = lavaan::HolzingerSwineford1939,
+  predictors = c("sex", "school", "grade")
+)
+summary(m1)
 }

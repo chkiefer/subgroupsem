@@ -4,17 +4,29 @@ Title: Subgroup Discovery in Structural Equation Models
 Version: 0.1-0.9000
 Date: 2021-08-20
 Authors@R: c(person(given = "Benedikt", family = "Langenberg",
+<<<<<<< HEAD
                     role  = c("aut"),
+=======
+                    role  = c("aut", "cre"),
+>>>>>>> 25b80405cd8c51475d55ad77876a3e2401f4f7bb
                     email = "benedikt.langenberg@gmail.com"),
              person(given = "Florian", family = "Lemmerich",
                     role  = c("ctb"),
                     email = "florian@lemmerich.net"),
              person(given = "Christoph", family = "Kiefer",
+<<<<<<< HEAD
                     role  = c("cre"),
                     email = "christoph.kiefer@uni-bielefeld.de",
                     comment = c(ORCID = "0000-0002-9166-400X"))
             )
 Maintainer: Christoph Kiefer <christoph.kiefer@uni-bielefeld.de>
+=======
+                    role  = c("aut"),
+                    email = "christoph.kiefer@uni-bielefeld.de",
+                    comment = c(ORCID = "0000-0002-9166-400X"))
+            )
+Maintainer: Benedikt Langenberg <benedikt.langenberg@gmail.com>
+>>>>>>> 25b80405cd8c51475d55ad77876a3e2401f4f7bb
 Description: subgroupsem is an R package for discovering interesting subgroups 
     with distinct sets of parameters in structural equation models (SEM).
     It uses the reticulate package to import subgroup algorithms from Python

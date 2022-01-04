@@ -1,4 +1,112 @@
 #' @export
+#' @title User-level function with user-defined interestingness measure
+#' @description todo
+#' @param model a lavaan model syntax (a character vector)
+#' @param data a data frame
+#' @param qf a lavaan syntax-based computation of the interestingness measure,
+#' where the interestingness measure has to be named *subsem_qf*. Can also
+#' be included directly in the model syntax (then, here NULL, as is default)
+#' @param predictors a character vector of variable names, which are used as
+#' covariates/predictors in the subgroup discovery (variables in data)
+#' @return List containing the time consumed and the groups.
+#' @importFrom lavaan sem
+#' @importFrom lavaan partable
+#' @importFrom lavaan lavInspect
+#' @examples
+#' # Define lavaan model
+#' model <- "
+#' eta1 =~ NA*x1 + c(la21,la22)*x2 + x3
+#' eta2 =~ NA*x4 + c(la51,la52)*x5 + x6
+#' eta3 =~ NA*x7 + c(la81,la82)*x8 + x9
+#'
+#' eta1 ~~ 1*eta1
+#' eta2 ~~ 1*eta2
+#' eta3 ~~ 1*eta3
+#'
+#' eta1 + eta2 + eta3 ~ 0*1
+#'
+#' subsem_qf := abs(la21 - la22)
+#' "
+#'
+#' # Pass model, data and names of predictors to function
+#' m1 <- subsem_wald(
+#'   model = model,
+#'   data = lavaan::HolzingerSwineford1939,
+#'   qf = NULL,
+#'   predictors = c("sex", "school", "grade")
+#' )
+#' summary(m1)
+subsem <- function(model, data, qf = NULL, predictors = NULL, subsemOptions = NULL) {
+  if (is.list(subsemOptions)) {
+    search_depth <- subsemOptions$search_depth
+  } else {
+    search_depth <- 2L
+  }
+
+  # Extract covariates names
+  predictors <- subsem_get_predictor_names(model, data, predictors)
+
+  if (!is.null(qf)) {
+    model <- paste0(model, "\n", qf)
+  }
+
+  f_fit <- function(sg, dat) {
+    # Add subgroup to dataset (from logical to numeric)
+    sg <- as.numeric(sg)
+    dat$subgroup <- sg
+
+    # if all participants in subgroup return 0
+    if (all(sg == 1)) {
+      rval <- 0
+      return(rval)
+    }
+
+    rval <- tryCatch(
+      {
+        # Fit Model
+        fit <- sem(
+          model,
+          data = dat,
+          group = "subgroup"
+        )
+
+        stopifnot(lavInspect(fit, "post.check"))
+        stopifnot(lavInspect(fit, "converged"))
+        # Extract interestingness measure
+        pt <- partable(fit)
+        rval <- pt$est[pt$label == "subsem_qf"]
+      },
+      error = function(e) -1
+    )
+
+    if (!is.numeric(rval) | length(rval) > 1) {
+      rval <- -1
+    }
+    return(rval)
+  }
+
+  # Search for subgroups
+  cat("Searching for subgroups...")
+  task <- tryCatch(
+    {
+      subgroupsem(
+        f_fit = f_fit,
+        dat = data,
+        columns = predictors,
+        search_depth = search_depth,
+        max_n_subgroups = 10,
+        generalization_aware = FALSE
+      )
+    },
+    error = function(e) -1
+  )
+  cat("Done.\n")
+  return(task)
+}
+
+
+
+#' @export
 #' @title User-level function for Wald-test based SubgroupSEM
 #' @description todo
 #' @param model a lavaan model syntax (a character vector)
@@ -49,7 +157,7 @@ subsem_wald <- function(model, data, constraints, predictors = NULL) {
     sg <- as.numeric(sg)
     dat$subgroup <- sg
 
-    # if all participants in subgroup return -1
+    # if all participants in subgroup return 0
     if (all(sg == 1)) {
       rval <- 0
       return(rval)

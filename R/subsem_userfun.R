@@ -36,12 +36,14 @@
 #'   predictors = c("sex", "school", "grade")
 #' )
 #' summary(m1)
-subsem <- function(model, data, qf = NULL, predictors = NULL, subsemOptions = NULL) {
-  if (is.list(subsemOptions)) {
-    search_depth <- subsemOptions$search_depth
-  } else {
-    search_depth <- 2L
-  }
+subsem <- function(model,
+                   data,
+                   qf = NULL,
+                   predictors = NULL,
+                   subsem_options = list()) {
+  stopifnot(
+    "subsem_options must be specified as list." = is.list(subsem_options)
+  )
 
   # Extract covariates names
   predictors <- subsem_get_predictor_names(model, data, predictors)
@@ -74,14 +76,17 @@ subsem <- function(model, data, qf = NULL, predictors = NULL, subsemOptions = NU
         stopifnot(lavInspect(fit, "converged"))
         # Extract interestingness measure
         pt <- partable(fit)
+
         rval <- pt$est[pt$label == "subsem_qf"]
       },
       error = function(e) -1
     )
 
+
     if (!is.numeric(rval) | length(rval) > 1) {
       rval <- -1
     }
+
     return(rval)
   }
 
@@ -89,14 +94,21 @@ subsem <- function(model, data, qf = NULL, predictors = NULL, subsemOptions = NU
   cat("Searching for subgroups...")
   task <- tryCatch(
     {
-      subgroupsem(
+      default_args <- list(
         f_fit = f_fit,
         dat = data,
-        columns = predictors,
-        search_depth = search_depth,
-        max_n_subgroups = 10,
-        generalization_aware = FALSE
+        columns = predictors
       )
+      do.call(
+        "subgroupsem",
+        c(default_args, subsem_options)
+      )
+      # subgroupsem(
+      #   f_fit = f_fit,
+      #   dat = data,
+      #   columns = predictors,
+      #   subsem_options
+      # )
     },
     error = function(e) -1
   )

@@ -110,6 +110,8 @@ subgroupsem <- function(f_fit,
                         generalization_aware = FALSE,
                         na_rm = FALSE,
                         ...) {
+    obj <- new("subgroupsem")
+    obj@call <- match.call()
 
     # Some checks due to the refactoring arguments may be deprecated
     # Weighting attribute was never implemented and is currently not planned
@@ -213,11 +215,8 @@ subgroupsem <- function(f_fit,
     end <- Sys.time()
 
     # Import results
-    results <- list(
-        time_elapsed = end - start,
-        summary_statistics = py_main$result$to_dataframe()
-    )
-    class(results) <- "subgroupsem"
+    obj@time_elapsed <- end - start
+    obj@summary_statistics <- py_main$result$to_dataframe()
 
-    return(results)
+    return(obj)
 }

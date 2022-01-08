@@ -1,8 +1,8 @@
 Package: subgroupsem
 Type: Package
 Title: Subgroup Discovery in Structural Equation Models
-Version: 0.1-0.9003
-Date: 2022-01-05
+Version: 0.1-0.9004
+Date: 2022-01-08
 Authors@R: c(person(given = "Benedikt", family = "Langenberg",
                     role  = c("aut", "cre"),
                     email = "benedikt.langenberg@gmail.com"),
@@ -28,3 +28,6 @@ License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.2
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

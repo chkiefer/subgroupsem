@@ -8,6 +8,8 @@
 #' be included directly in the model syntax (then, here NULL, as is default)
 #' @param predictors a character vector of variable names, which are used as
 #' covariates/predictors in the subgroup discovery (variables in data)
+#' @param subsem_options A list of additional options passed to the subgroupsem
+#' main function
 #' @return List containing the time consumed and the groups.
 #' @importFrom lavaan sem
 #' @importFrom lavaan partable
@@ -29,7 +31,7 @@
 #' "
 #'
 #' # Pass model, data and names of predictors to function
-#' m1 <- subsem_wald(
+#' m1 <- subsem(
 #'   model = model,
 #'   data = lavaan::HolzingerSwineford1939,
 #'   qf = NULL,
@@ -103,12 +105,6 @@ subsem <- function(model,
         "subgroupsem",
         c(default_args, subsem_options)
       )
-      # subgroupsem(
-      #   f_fit = f_fit,
-      #   dat = data,
-      #   columns = predictors,
-      #   subsem_options
-      # )
     },
     error = function(e) -1
   )

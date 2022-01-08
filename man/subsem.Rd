@@ -4,7 +4,7 @@
 \alias{subsem}
 \title{User-level function with user-defined interestingness measure}
 \usage{
-subsem(model, data, qf = NULL, predictors = NULL, subsemOptions = NULL)
+subsem(model, data, qf = NULL, predictors = NULL, subsem_options = list())
 }
 \arguments{
 \item{model}{a lavaan model syntax (a character vector)}
@@ -17,6 +17,9 @@ be included directly in the model syntax (then, here NULL, as is default)}
 
 \item{predictors}{a character vector of variable names, which are used as
 covariates/predictors in the subgroup discovery (variables in data)}
+
+\item{subsem_options}{A list of additional options passed to the subgroupsem
+main function}
 }
 \value{
 List containing the time consumed and the groups.
@@ -41,7 +44,7 @@ subsem_qf := abs(la21 - la22)
 "
 
 # Pass model, data and names of predictors to function
-m1 <- subsem_wald(
+m1 <- subsem(
   model = model,
   data = lavaan::HolzingerSwineford1939,
   qf = NULL,

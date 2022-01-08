@@ -1,3 +1,17 @@
+#' @keywords internal
+#'
+clean_up_python <- function() {
+    cleaning <- '
+for element in dir():
+    if element[0:2] != "__":
+        del globals()[element]
+del  element
+
+import gc
+gc.collect()'
+    py_run_string(cleaning)
+}
+
 # #' @keywords internal
 # #' @importFrom reticulate py_run_string
 # attach_reticulate <- function() {

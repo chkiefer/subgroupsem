@@ -218,5 +218,8 @@ subgroupsem <- function(f_fit,
     obj@time_elapsed <- end - start
     obj@summary_statistics <- py_main$result$to_dataframe()
 
+    # At last try to remove everything on the Python site from memory
+    clean_up_python()
+
     return(obj)
 }

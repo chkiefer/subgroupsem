@@ -32,6 +32,7 @@ setMethod(
 #' @export
 #' @noRd
 setMethod("plot", signature(x = "subgroupsem"), function(x) {
+    object <- x
     n_sg <- nrow(object@summary_statistics)
     x <- 1:n_sg
     y <- object@summary_statistics$quality

@@ -316,7 +316,8 @@ subsem_lrt <- function(model,
 
   baselinefit <- sem(
     model = get_single_group_partable(model),
-    data = data
+    data = data,
+    se = "none"
   )
 
   # Interestingness Measure in Baseline Fit
@@ -340,7 +341,8 @@ subsem_lrt <- function(model,
         default_args <- list(
           model = model,
           data = dat,
-          group = "subgroup"
+          group = "subgroup",
+          se = "none"
         )
         fit <- do.call(
           "sem",

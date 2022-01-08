@@ -4,7 +4,14 @@
 \alias{subsem_wald}
 \title{User-level function for Wald-test based SubgroupSEM}
 \usage{
-subsem_wald(model, data, constraints, predictors = NULL)
+subsem_wald(
+  model,
+  data,
+  constraints,
+  predictors = NULL,
+  subsem_options = list(),
+  lavaan_options = list()
+)
 }
 \arguments{
 \item{model}{a lavaan model syntax (a character vector)}
@@ -16,6 +23,12 @@ Wald test. (a character vector)}
 
 \item{predictors}{a character vector of variable names, which are used as
 covariates/predictors in the subgroup discovery (variables in data)}
+
+\item{subsem_options}{A list of additional options passed to the subgroupsem
+main function}
+
+\item{lavaan_options}{A list of additional options passed to the lavaan
+main function}
 }
 \value{
 List containing the time consumed and the groups.

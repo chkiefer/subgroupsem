@@ -15,7 +15,8 @@ subsem_qf := abs(la21 - la22)
     model = model,
     data = lavaan::HolzingerSwineford1939,
     qf = NULL,
-    predictors = c("sex", "school", "grade")
+    predictors = c("sex", "school", "grade"),
+    lavaan_options = list(warn = FALSE)
   )
 
   # Are the interestingness measures right?
@@ -60,7 +61,8 @@ test_that("subsem_wald_works", {
     model = model,
     data = lavaan::HolzingerSwineford1939,
     constraints = con,
-    predictors = c("sex", "school", "grade")
+    predictors = c("sex", "school", "grade"),
+    lavaan_options = list(warn = FALSE)
   )
 
   # Are the interestingness measures right?
@@ -95,7 +97,8 @@ eta1 + eta2 + eta3 ~ 0*1
   m1 <- subsem_lrt(
     model = model,
     data = lavaan::HolzingerSwineford1939,
-    predictors = c("sex", "school", "grade")
+    predictors = c("sex", "school", "grade"),
+    lavaan_options = list(warn = FALSE)
   )
 
   # Are the interestingness measures right?

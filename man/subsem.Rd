@@ -4,7 +4,14 @@
 \alias{subsem}
 \title{User-level function with user-defined interestingness measure}
 \usage{
-subsem(model, data, qf = NULL, predictors = NULL, subsem_options = list())
+subsem(
+  model,
+  data,
+  qf = NULL,
+  predictors = NULL,
+  subsem_options = list(),
+  lavaan_options = list()
+)
 }
 \arguments{
 \item{model}{a lavaan model syntax (a character vector)}
@@ -19,6 +26,9 @@ be included directly in the model syntax (then, here NULL, as is default)}
 covariates/predictors in the subgroup discovery (variables in data)}
 
 \item{subsem_options}{A list of additional options passed to the subgroupsem
+main function}
+
+\item{lavaan_options}{A list of additional options passed to the lavaan
 main function}
 }
 \value{

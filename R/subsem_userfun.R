@@ -10,6 +10,8 @@
 #' covariates/predictors in the subgroup discovery (variables in data)
 #' @param subsem_options A list of additional options passed to the subgroupsem
 #' main function
+#' @param lavaan_options A list of additional options passed to the lavaan
+#' main function
 #' @return List containing the time consumed and the groups.
 #' @importFrom lavaan sem
 #' @importFrom lavaan partable
@@ -42,7 +44,8 @@ subsem <- function(model,
                    data,
                    qf = NULL,
                    predictors = NULL,
-                   subsem_options = list()) {
+                   subsem_options = list(),
+                   lavaan_options = list()) {
   stopifnot(
     "subsem_options must be specified as list." = is.list(subsem_options)
   )
@@ -68,10 +71,14 @@ subsem <- function(model,
     rval <- tryCatch(
       {
         # Fit Model
-        fit <- sem(
-          model,
+        default_args <- list(
+          model = model,
           data = dat,
           group = "subgroup"
+        )
+        fit <- do.call(
+          "sem",
+          c(default_args, lavaan_options)
         )
 
         stopifnot(lavInspect(fit, "post.check"))
@@ -123,6 +130,10 @@ subsem <- function(model,
 #' Wald test. (a character vector)
 #' @param predictors a character vector of variable names, which are used as
 #' covariates/predictors in the subgroup discovery (variables in data)
+#' @param subsem_options A list of additional options passed to the subgroupsem
+#' main function
+#' @param lavaan_options A list of additional options passed to the lavaan
+#' main function
 #' @return List containing the time consumed and the groups.
 #' @importFrom lavaan sem
 #' @importFrom lavaan lavInspect
@@ -155,7 +166,12 @@ subsem <- function(model,
 #'   predictors = c("sex", "school", "grade")
 #' )
 #' summary(m1)
-subsem_wald <- function(model, data, constraints, predictors = NULL) {
+subsem_wald <- function(model,
+                        data,
+                        constraints,
+                        predictors = NULL,
+                        subsem_options = list(),
+                        lavaan_options = list()) {
 
   # Extract covariates names
   predictors <- subsem_get_predictor_names(model, data, predictors)
@@ -174,10 +190,14 @@ subsem_wald <- function(model, data, constraints, predictors = NULL) {
     rval <- tryCatch(
       {
         # Fit Model
-        fit <- sem(
-          model,
+        default_args <- list(
+          model = model,
           data = dat,
           group = "subgroup"
+        )
+        fit <- do.call(
+          "sem",
+          c(default_args, lavaan_options)
         )
 
         stopifnot(lavInspect(fit, "post.check"))
@@ -198,17 +218,32 @@ subsem_wald <- function(model, data, constraints, predictors = NULL) {
   cat("Searching for subgroups...")
   task <- tryCatch(
     {
-      subgroupsem(
+      default_args <- list(
         f_fit = f_fit,
         dat = data,
-        columns = predictors,
-        search_depth = 2,
-        max_n_subgroups = 10,
-        generalization_aware = FALSE
+        columns = predictors
+      )
+      do.call(
+        "subgroupsem",
+        c(default_args, subsem_options)
       )
     },
     error = function(e) -1
   )
+
+  # task <- tryCatch(
+  #   {
+  #     subgroupsem(
+  #       f_fit = f_fit,
+  #       dat = data,
+  #       columns = predictors,
+  #       search_depth = 2,
+  #       max_n_subgroups = 10,
+  #       generalization_aware = FALSE
+  #     )
+  #   },
+  #   error = function(e) -1
+  # )
   cat("Done.\n")
   return(task)
 }
@@ -221,6 +256,10 @@ subsem_wald <- function(model, data, constraints, predictors = NULL) {
 #' @param data a data frame
 #' @param predictors a character vector of variable names, which are used as
 #' covariates/predictors in the subgroup discovery (variables in data)
+#' @param subsem_options A list of additional options passed to the subgroupsem
+#' main function
+#' @param lavaan_options A list of additional options passed to the lavaan
+#' main function
 #' @importFrom lavaan sem
 #' @importFrom lavaan lavInspect
 #' @importFrom lavaan lavaanify
@@ -245,7 +284,11 @@ subsem_wald <- function(model, data, constraints, predictors = NULL) {
 #'   predictors = c("sex", "school", "grade")
 #' )
 #' summary(m1)
-subsem_lrt <- function(model, data, predictors = NULL) {
+subsem_lrt <- function(model,
+                       data,
+                       predictors = NULL,
+                       subsem_options = list(),
+                       lavaan_options = list()) {
 
   # Extract covariates names
   predictors <- subsem_get_predictor_names(model, data, predictors)
@@ -294,7 +337,15 @@ subsem_lrt <- function(model, data, predictors = NULL) {
     rval <- tryCatch(
       {
         # Fit Model
-        fit <- sem(model, data = dat, group = "subgroup")
+        default_args <- list(
+          model = model,
+          data = dat,
+          group = "subgroup"
+        )
+        fit <- do.call(
+          "sem",
+          c(default_args, lavaan_options)
+        )
         stopifnot(lavInspect(fit, "post.check"))
 
         # Compute interestingness measure
@@ -315,17 +366,31 @@ subsem_lrt <- function(model, data, predictors = NULL) {
   cat("Searching for subgroups...")
   task <- tryCatch(
     {
-      subgroupsem(
+      default_args <- list(
         f_fit = f_fit,
         dat = data,
-        columns = predictors,
-        search_depth = 4,
-        max_n_subgroups = 10,
-        generalization_aware = FALSE
+        columns = predictors
+      )
+      do.call(
+        "subgroupsem",
+        c(default_args, subsem_options)
       )
     },
     error = function(e) -1
   )
+  # task <- tryCatch(
+  #   {
+  #     subgroupsem(
+  #       f_fit = f_fit,
+  #       dat = data,
+  #       columns = predictors,
+  #       search_depth = 4,
+  #       max_n_subgroups = 10,
+  #       generalization_aware = FALSE
+  #     )
+  #   },
+  #   error = function(e) -1
+  # )
   cat("Done.\n")
   return(task)
 }

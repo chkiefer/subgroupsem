@@ -4,7 +4,13 @@
 \alias{subsem_lrt}
 \title{User-level function for LRT-based SubgroupSEM}
 \usage{
-subsem_lrt(model, data, predictors = NULL)
+subsem_lrt(
+  model,
+  data,
+  predictors = NULL,
+  subsem_options = list(),
+  lavaan_options = list()
+)
 }
 \arguments{
 \item{model}{a lavaan model syntax (a character vector)}
@@ -13,6 +19,12 @@ subsem_lrt(model, data, predictors = NULL)
 
 \item{predictors}{a character vector of variable names, which are used as
 covariates/predictors in the subgroup discovery (variables in data)}
+
+\item{subsem_options}{A list of additional options passed to the subgroupsem
+main function}
+
+\item{lavaan_options}{A list of additional options passed to the lavaan
+main function}
 }
 \description{
 todo

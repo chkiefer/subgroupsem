@@ -31,7 +31,8 @@
 #' the regarding in the \code{sg} vector will be also \code{NA}.
 #' @param weighting_attr This option is \emph{deprecated}.
 #' @param generalization_aware This option is \emph{deprecated}.
-#' @param ... Additional arguments to be passed to \code{f_fit}.
+#' @param ... Additional arguments to be passed to \code{f_fit}. Currently,
+#' not well implemented.
 #' @return List containing the time consumed and the groups.
 #' @examples
 #' if (FALSE) {
@@ -101,14 +102,16 @@ subgroupsem <- function(f_fit,
                         columns = names(dat),
                         ignore = NULL,
                         algorithm = "SimpleDFS",
-                        max_n_subgroups = 10,
-                        search_depth = 3,
+                        max_n_subgroups = 10L,
+                        search_depth = 3L,
                         min_quality = 0,
                         min_subgroup_size = NULL,
                         weighting_attr = NULL,
                         generalization_aware = FALSE,
                         na_rm = FALSE,
                         ...) {
+    obj <- new("subgroupsem")
+    obj@call <- match.call()
 
     # Some checks due to the refactoring arguments may be deprecated
     # Weighting attribute was never implemented and is currently not planned
@@ -157,6 +160,7 @@ subgroupsem <- function(f_fit,
             has_na_selectors <- apply(has_na[, selectors, drop = F], 1, any)
             sg <- ifelse(has_na_selectors, NA, sg)
         }
+
         ## pass sg and dat to user specified function
         return(f_fit(sg, dat))
     }
@@ -197,6 +201,9 @@ subgroupsem <- function(f_fit,
     start <- Sys.time()
     if (algorithm == "SimpleDFS" | algorithm == "DFS") {
         py_run_string("result = ps.SimpleDFS().execute(task)")
+    } else if (algorithm == "Beam") {
+        py_main$bw <- as.integer(max_n_subgroups)
+        py_run_string("result = ps.BeamSearch(beam_width=bw).execute(task)")
     } else {
         warning(
             paste(
@@ -208,11 +215,11 @@ subgroupsem <- function(f_fit,
     end <- Sys.time()
 
     # Import results
-    results <- list(
-        time_elapsed = end - start,
-        summary_statistics = py_main$result$to_dataframe()
-    )
-    class(results) <- "subgroupsem"
+    obj@time_elapsed <- end - start
+    obj@summary_statistics <- py_main$result$to_dataframe()
 
-    return(results)
+    # At last try to remove everything on the Python site from memory
+    clean_up_python()
+
+    return(obj)
 }

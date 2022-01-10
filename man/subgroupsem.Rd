@@ -10,8 +10,8 @@ subgroupsem(
   columns = names(dat),
   ignore = NULL,
   algorithm = "SimpleDFS",
-  max_n_subgroups = 10,
-  search_depth = 3,
+  max_n_subgroups = 10L,
+  search_depth = 3L,
   min_quality = 0,
   min_subgroup_size = NULL,
   weighting_attr = NULL,
@@ -60,7 +60,8 @@ below will not be considered. Not implemented yet.}
 on any column will be set to FALSE in the \code{sg} vector. If set to FALSE,
 the regarding in the \code{sg} vector will be also \code{NA}.}
 
-\item{...}{Additional arguments to be passed to \code{f_fit}.}
+\item{...}{Additional arguments to be passed to \code{f_fit}. Currently,
+not well implemented.}
 }
 \value{
 List containing the time consumed and the groups.

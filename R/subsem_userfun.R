@@ -113,7 +113,7 @@ subsem <- function(model,
         c(default_args, subsem_options)
       )
     },
-    error = function(e) -1
+    error = function(e) print(e)
   )
   cat("Done.\n")
   return(task)
@@ -228,7 +228,7 @@ subsem_wald <- function(model,
         c(default_args, subsem_options)
       )
     },
-    error = function(e) -1
+    error = function(e) print(e)
   )
 
   # task <- tryCatch(
@@ -378,7 +378,7 @@ subsem_lrt <- function(model,
         c(default_args, subsem_options)
       )
     },
-    error = function(e) -1
+    error = function(e) print(e)
   )
   # task <- tryCatch(
   #   {

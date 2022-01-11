@@ -48,3 +48,5 @@ Simply confirm by typing `y`.
 ## Run subgroupsem
 
 The main function of the package is `subgroupsem()`. The documentation of this function helps to introduce you to its functionality.
+
+ If you decided to use `miniconda`, do not forget to run the command `use_miniconda()` after you loaded `subgroupsem`. This has to be done again every time you loaded `subgroupsem`.

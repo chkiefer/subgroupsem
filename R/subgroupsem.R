@@ -110,6 +110,12 @@ subgroupsem <- function(f_fit,
                         generalization_aware = FALSE,
                         na_rm = FALSE,
                         ...) {
+    
+    
+    if (!((status <- subgroupsem_ready(ask = T)) == TRUE)) {
+        stop(status)
+    }
+    
     obj <- new("subgroupsem")
     obj@call <- match.call()
 

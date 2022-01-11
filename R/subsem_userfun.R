@@ -101,20 +101,16 @@ subsem <- function(model,
 
   # Search for subgroups
   cat("Searching for subgroups...")
-  task <- tryCatch(
-    {
-      default_args <- list(
-        f_fit = f_fit,
-        dat = data,
-        columns = predictors
-      )
-      do.call(
-        "subgroupsem",
-        c(default_args, subsem_options)
-      )
-    },
-    error = function(e) print(e)
+  default_args <- list(
+    f_fit = f_fit,
+    dat = data,
+    columns = predictors
   )
+  task <- do.call(
+    "subgroupsem",
+    c(default_args, subsem_options)
+  )
+
   cat("Done.\n")
   return(task)
 }
@@ -216,34 +212,17 @@ subsem_wald <- function(model,
 
   # Search for subgroups
   cat("Searching for subgroups...")
-  task <- tryCatch(
-    {
-      default_args <- list(
-        f_fit = f_fit,
-        dat = data,
-        columns = predictors
-      )
-      do.call(
-        "subgroupsem",
-        c(default_args, subsem_options)
-      )
-    },
-    error = function(e) print(e)
+  default_args <- list(
+    f_fit = f_fit,
+    dat = data,
+    columns = predictors
+  )
+  task <- do.call(
+    "subgroupsem",
+    c(default_args, subsem_options)
   )
 
-  # task <- tryCatch(
-  #   {
-  #     subgroupsem(
-  #       f_fit = f_fit,
-  #       dat = data,
-  #       columns = predictors,
-  #       search_depth = 2,
-  #       max_n_subgroups = 10,
-  #       generalization_aware = FALSE
-  #     )
-  #   },
-  #   error = function(e) -1
-  # )
+
   cat("Done.\n")
   return(task)
 }
@@ -366,20 +345,17 @@ subsem_lrt <- function(model,
 
   # Search for subgroups
   cat("Searching for subgroups...")
-  task <- tryCatch(
-    {
-      default_args <- list(
-        f_fit = f_fit,
-        dat = data,
-        columns = predictors
-      )
-      do.call(
-        "subgroupsem",
-        c(default_args, subsem_options)
-      )
-    },
-    error = function(e) print(e)
+
+  default_args <- list(
+    f_fit = f_fit,
+    dat = data,
+    columns = predictors
   )
+  task <- do.call(
+    "subgroupsem",
+    c(default_args, subsem_options)
+  )
+
   # task <- tryCatch(
   #   {
   #     subgroupsem(

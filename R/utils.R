@@ -12,6 +12,42 @@ gc.collect()'
     py_run_string(cleaning)
 }
 
+#' Checks whether python and module pysubgroup are installed.
+#' @param ask Logical. Default is FALSE. Indicates whether user is asked whether
+#' pysubgroup should be installed if it is not available.
+#' @export
+#' @importFrom reticulate py_available py_install import_main import py_run_string
+subgroupsem_ready <- function(ask=FALSE) {
+    if (!py_available(initialize = T)) {
+        return("No python version could be found. Please install python version.")
+    }
+    
+    installed <- tryCatch({
+        py_main <- import_main()
+        py_main$pkg_resources <- import("pkg_resources")
+        py_run_string("from importlib import reload")
+        py_run_string("reload(pkg_resources)")
+        py_main$pkg_resources$get_distribution("pysubgroup")$version == "0.7.2"
+    }, error = function(e) {
+        FALSE
+    })
+    
+    if (!installed && ask) {
+        if (readline(prompt="Python module 'pysubgroup' not installed. Do you want to install now? (y/n) ") == tolower("y")) {
+            cat("Installing pysubgroup...\n")
+            py_install("pysubgroup==0.7.2", pip = T)
+            cat("Installing pysubgroup... Done\n")
+            return(TRUE)
+        } else {
+            return("Python module 'pysubgroup' not installed")
+        }
+    } else if (!installed) {
+        return("Python module 'pysubgroup' not installed")
+    }
+    
+    TRUE
+}
+
 # #' @keywords internal
 # #' @importFrom reticulate py_run_string
 # attach_reticulate <- function() {

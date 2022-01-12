@@ -1,1 +1,6 @@
-testwiese.R
+.*
+*.Rproj
+*.sh
+R/todo*
+.Rproj.user
+inst/doc

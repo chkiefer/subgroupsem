@@ -49,6 +49,10 @@ subsem <- function(model,
   stopifnot(
     "subsem_options must be specified as list." = is.list(subsem_options)
   )
+    
+  if (!((status <- subgroupsem_ready(ask = T)) == TRUE)) {
+    stop(status)
+  }
 
   # Extract covariates names
   predictors <- subsem_get_predictor_names(model, data, predictors)

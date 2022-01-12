@@ -49,10 +49,10 @@ subsem <- function(model,
   stopifnot(
     "subsem_options must be specified as list." = is.list(subsem_options)
   )
-    
-  if (!((status <- subgroupsem_ready(ask = T)) == TRUE)) {
-    stop(status)
-  }
+
+  # if (!((status <- subgroupsem_ready(ask = T)) == TRUE)) {
+  #   stop(status)
+  # }
 
   # Extract covariates names
   predictors <- subsem_get_predictor_names(model, data, predictors)
@@ -360,19 +360,6 @@ subsem_lrt <- function(model,
     c(default_args, subsem_options)
   )
 
-  # task <- tryCatch(
-  #   {
-  #     subgroupsem(
-  #       f_fit = f_fit,
-  #       dat = data,
-  #       columns = predictors,
-  #       search_depth = 4,
-  #       max_n_subgroups = 10,
-  #       generalization_aware = FALSE
-  #     )
-  #   },
-  #   error = function(e) -1
-  # )
   cat("Done.\n")
   return(task)
 }
@@ -383,7 +370,9 @@ subsem_lrt <- function(model,
 #' @importFrom lavaan lavaanify
 subsem_get_predictor_names <- function(model, data, predictors) {
   if (is.null(predictors)) {
-    predictors <- names(data)[!names(data) %in% lavNames(lavaanify(model, ngroups = 2L))]
+    predictors <- names(data)[
+      !names(data) %in% lavNames(lavaanify(model, ngroups = 2L))
+    ]
   } else if (is.character(predictors)) {
     predictors <- predictors
   } else {

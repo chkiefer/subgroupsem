@@ -67,7 +67,7 @@ subsem <- function(model,
     dat$subgroup <- sg
 
     # if all participants in subgroup return 0
-    if (all(sg == 1)) {
+    if (all(sg == 1, na.rm = TRUE)) {
       rval <- 0
       return(rval)
     }
@@ -105,20 +105,16 @@ subsem <- function(model,
 
   # Search for subgroups
   cat("Searching for subgroups...")
-  task <- tryCatch(
-    {
-      default_args <- list(
-        f_fit = f_fit,
-        dat = data,
-        columns = predictors
-      )
-      do.call(
-        "subgroupsem",
-        c(default_args, subsem_options)
-      )
-    },
-    error = function(e) -1
+  default_args <- list(
+    f_fit = f_fit,
+    dat = data,
+    columns = predictors
   )
+  task <- do.call(
+    "subgroupsem",
+    c(default_args, subsem_options)
+  )
+
   cat("Done.\n")
   return(task)
 }
@@ -186,7 +182,7 @@ subsem_wald <- function(model,
     dat$subgroup <- sg
 
     # if all participants in subgroup return 0
-    if (all(sg == 1)) {
+    if (all(sg == 1, na.rm = TRUE)) {
       rval <- 0
       return(rval)
     }
@@ -220,34 +216,17 @@ subsem_wald <- function(model,
 
   # Search for subgroups
   cat("Searching for subgroups...")
-  task <- tryCatch(
-    {
-      default_args <- list(
-        f_fit = f_fit,
-        dat = data,
-        columns = predictors
-      )
-      do.call(
-        "subgroupsem",
-        c(default_args, subsem_options)
-      )
-    },
-    error = function(e) -1
+  default_args <- list(
+    f_fit = f_fit,
+    dat = data,
+    columns = predictors
+  )
+  task <- do.call(
+    "subgroupsem",
+    c(default_args, subsem_options)
   )
 
-  # task <- tryCatch(
-  #   {
-  #     subgroupsem(
-  #       f_fit = f_fit,
-  #       dat = data,
-  #       columns = predictors,
-  #       search_depth = 2,
-  #       max_n_subgroups = 10,
-  #       generalization_aware = FALSE
-  #     )
-  #   },
-  #   error = function(e) -1
-  # )
+
   cat("Done.\n")
   return(task)
 }
@@ -334,7 +313,7 @@ subsem_lrt <- function(model,
     dat$subgroup <- sg
 
     # if all participants in subgroup return -1
-    if (all(sg == 1)) {
+    if (all(sg == 1, na.rm = TRUE)) {
       rval <- 0
       return(rval)
     }
@@ -370,20 +349,17 @@ subsem_lrt <- function(model,
 
   # Search for subgroups
   cat("Searching for subgroups...")
-  task <- tryCatch(
-    {
-      default_args <- list(
-        f_fit = f_fit,
-        dat = data,
-        columns = predictors
-      )
-      do.call(
-        "subgroupsem",
-        c(default_args, subsem_options)
-      )
-    },
-    error = function(e) -1
+
+  default_args <- list(
+    f_fit = f_fit,
+    dat = data,
+    columns = predictors
   )
+  task <- do.call(
+    "subgroupsem",
+    c(default_args, subsem_options)
+  )
+
   # task <- tryCatch(
   #   {
   #     subgroupsem(

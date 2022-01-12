@@ -25,12 +25,17 @@
 #' @param min_quality Minimum value of interestingness measure. Values below
 #' will not be considered. Default is 0.
 #' @param min_subgroup_size Minimum size of a subgroup. Subgroups with sizes
-#' below will not be considered. Not implemented yet.
+#' below will not be considered. The absolute minimum is set to 50 units, which
+#' can not be lowered. If NULL (default) the absolute minimum is applied.
 #' @param na_rm Boolean. Default is FALSE. If set to TRUE, cases with NA values
 #' on any column will be set to FALSE in the \code{sg} vector. If set to FALSE,
 #' the regarding in the \code{sg} vector will be also \code{NA}.
 #' @param weighting_attr This option is \emph{deprecated}.
 #' @param generalization_aware This option is \emph{deprecated}.
+#' @param bw Integer for beam width. Only used if algorithm is Beam search.
+#' Defaults to \code{max_n_subgroups}.
+#' @param verbose Logical. Get some information, what is going on. Defaults
+#' to \code{FALSE}.
 #' @param ... Additional arguments to be passed to \code{f_fit}. Currently,
 #' not well implemented.
 #' @return List containing the time consumed and the groups.
@@ -109,6 +114,8 @@ subgroupsem <- function(f_fit,
                         weighting_attr = NULL,
                         generalization_aware = FALSE,
                         na_rm = FALSE,
+                        bw = NULL,
+                        verbose = FALSE,
                         ...) {
     
     
@@ -155,8 +162,12 @@ subgroupsem <- function(f_fit,
     ## TODO: maybe it would be easier to extend the class Conjunction
     ## for the complement...
     ## get matrix of NAs
+    if (!is.null(ignore)) {
+        columns <- columns[!(columns %in% ignore)]
+    }
     has_na <- sapply(columns, function(column) is.na(dat[, column]))
 
+    subsem_county <- 1L
     f_fit_internal <- function(sg, selectors = NULL) {
         # Empty selectors are transfered as empty list...
         if (is.list(selectors)) selectors <- unlist(selectors)
@@ -165,6 +176,29 @@ subgroupsem <- function(f_fit,
             ## if case has NA in one of the selectors, insert NA
             has_na_selectors <- apply(has_na[, selectors, drop = F], 1, any)
             sg <- ifelse(has_na_selectors, NA, sg)
+        }
+
+        # Check if subgroup is big enough, else return -1
+        if (!is.null(min_subgroup_size)) {
+            if (sum(sg, na.rm = TRUE) < min_subgroup_size) {
+                return(-1)
+            }
+        }
+
+        if (verbose) {
+            if (subsem_county > 1L) {
+                cat("\r")
+            } else {
+                cat("\n")
+            }
+            msg <- paste(
+                "Inspecting group",
+                subsem_county,
+                "combination of",
+                paste(selectors, collapse = " AND ")
+            )
+            cat(msg)
+            subsem_county <<- subsem_county + 1L
         }
 
         ## pass sg and dat to user specified function
@@ -178,9 +212,6 @@ subgroupsem <- function(f_fit,
 
     # 2. Define selector variables, i.e. variables named in columns
     # and not excluded through ignore
-    if (!is.null(ignore)) {
-        columns <- columns[!(columns %in% ignore)]
-    }
     ignore_names <- names(dat)[!(names(dat) %in% columns)]
     py_main$searchspace <- py_main$ps$create_selectors(
         dat,
@@ -208,7 +239,12 @@ subgroupsem <- function(f_fit,
     if (algorithm == "SimpleDFS" | algorithm == "DFS") {
         py_run_string("result = ps.SimpleDFS().execute(task)")
     } else if (algorithm == "Beam") {
-        py_main$bw <- as.integer(max_n_subgroups)
+        if (is.null(bw)) {
+            py_main$bw <- as.integer(max_n_subgroups)
+        } else {
+            py_main$bw <- as.integer(bw)
+        }
+
         py_run_string("result = ps.BeamSearch(beam_width=bw).execute(task)")
     } else {
         warning(

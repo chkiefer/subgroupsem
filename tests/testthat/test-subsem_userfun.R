@@ -117,3 +117,43 @@ eta1 + eta2 + eta3 ~ 0*1
   size_sg_comp <- c(145, 156, 79, 157, 143, 65, 72, 78, 73, 74)
   expect_equal(size_sg, size_sg_comp)
 })
+
+
+
+test_that("passing_options_works", {
+  # Define lavaan model
+  model <- "
+ eta1 =~ NA*x1 + c(la21,la22)*x2 + x3
+ eta2 =~ NA*x4 + c(la51,la52)*x5 + x6
+ eta3 =~ NA*x7 + c(la81,la82)*x8 + x9
+
+ eta1 ~~ 1*eta1
+ eta2 ~~ 1*eta2
+ eta3 ~~ 1*eta3
+
+ eta1 + eta2 + eta3 ~ 0*1
+ "
+
+  con <- "
+ la21 == la22
+ la51 == la52
+ la81 == la82
+ "
+
+  # Pass model, data and names of predictors to function
+  m1 <- subsem_wald(
+    model = model,
+    data = lavaan::HolzingerSwineford1939,
+    constraints = con,
+    predictors = c("sex", "school", "grade"),
+    subsem_options = list(
+      algorithm = "Beam",
+      search_depth = 2L,
+      max_n_subgroups = 5L,
+      min_subgroup_size = 70L
+    ),
+    lavaan_options = list(missing = "fiml")
+  )
+  summary(m1)
+  expect_equal(1, 1)
+})

@@ -17,6 +17,8 @@ subgroupsem(
   weighting_attr = NULL,
   generalization_aware = FALSE,
   na_rm = FALSE,
+  bw = NULL,
+  verbose = FALSE,
   ...
 )
 }
@@ -50,7 +52,8 @@ yet implemented.}
 will not be considered. Default is 0.}
 
 \item{min_subgroup_size}{Minimum size of a subgroup. Subgroups with sizes
-below will not be considered. Not implemented yet.}
+below will not be considered. The absolute minimum is set to 50 units, which
+can not be lowered. If NULL (default) the absolute minimum is applied.}
 
 \item{weighting_attr}{This option is \emph{deprecated}.}
 
@@ -59,6 +62,12 @@ below will not be considered. Not implemented yet.}
 \item{na_rm}{Boolean. Default is FALSE. If set to TRUE, cases with NA values
 on any column will be set to FALSE in the \code{sg} vector. If set to FALSE,
 the regarding in the \code{sg} vector will be also \code{NA}.}
+
+\item{bw}{Integer for beam width. Only used if algorithm is Beam search.
+Defaults to \code{max_n_subgroups}.}
+
+\item{verbose}{Logical. Get some information, what is going on. Defaults
+to \code{FALSE}.}
 
 \item{...}{Additional arguments to be passed to \code{f_fit}. Currently,
 not well implemented.}

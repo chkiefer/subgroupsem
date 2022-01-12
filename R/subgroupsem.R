@@ -34,6 +34,8 @@
 #' @param generalization_aware This option is \emph{deprecated}.
 #' @param bw Integer for beam width. Only used if algorithm is Beam search.
 #' Defaults to \code{max_n_subgroups}.
+#' @param verbose Logical. Get some information, what is going on. Defaults
+#' to \code{FALSE}.
 #' @param ... Additional arguments to be passed to \code{f_fit}. Currently,
 #' not well implemented.
 #' @return List containing the time consumed and the groups.
@@ -113,6 +115,7 @@ subgroupsem <- function(f_fit,
                         generalization_aware = FALSE,
                         na_rm = FALSE,
                         bw = NULL,
+                        verbose = FALSE,
                         ...) {
     obj <- new("subgroupsem")
     obj@call <- match.call()
@@ -158,6 +161,7 @@ subgroupsem <- function(f_fit,
     }
     has_na <- sapply(columns, function(column) is.na(dat[, column]))
 
+    subsem_county <- 1L
     f_fit_internal <- function(sg, selectors = NULL) {
         # Empty selectors are transfered as empty list...
         if (is.list(selectors)) selectors <- unlist(selectors)
@@ -175,6 +179,21 @@ subgroupsem <- function(f_fit,
             }
         }
 
+        if (verbose) {
+            if (subsem_county > 1L) {
+                cat("\r")
+            } else {
+                cat("\n")
+            }
+            msg <- paste(
+                "Inspecting group",
+                subsem_county,
+                "combination of",
+                paste(selectors, collapse = " AND ")
+            )
+            cat(msg)
+            subsem_county <<- subsem_county + 1L
+        }
 
         ## pass sg and dat to user specified function
         return(f_fit(sg, dat))
@@ -214,12 +233,12 @@ subgroupsem <- function(f_fit,
     if (algorithm == "SimpleDFS" | algorithm == "DFS") {
         py_run_string("result = ps.SimpleDFS().execute(task)")
     } else if (algorithm == "Beam") {
-        if (is.null(bw)){
+        if (is.null(bw)) {
             py_main$bw <- as.integer(max_n_subgroups)
         } else {
             py_main$bw <- as.integer(bw)
         }
-        
+
         py_run_string("result = ps.BeamSearch(beam_width=bw).execute(task)")
     } else {
         warning(

@@ -117,12 +117,12 @@ subgroupsem <- function(f_fit,
                         bw = NULL,
                         verbose = FALSE,
                         ...) {
-    
-    
+
+    # Some lines to check, whether reticulate / Python is set up correctly...
     if (!((status <- subgroupsem_ready(ask = T)) == TRUE)) {
         stop(status)
     }
-    
+
     obj <- new("subgroupsem")
     obj@call <- match.call()
 
@@ -147,9 +147,6 @@ subgroupsem <- function(f_fit,
             )
         )
     }
-
-    # Some lines to check, whether reticulate / Python is set up correctly...
-    # TODO
 
     # Import Python environment, pysubgroup module, and semtarget class
     py_main <- import_main()

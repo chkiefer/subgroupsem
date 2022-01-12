@@ -63,7 +63,7 @@ subsem <- function(model,
     dat$subgroup <- sg
 
     # if all participants in subgroup return 0
-    if (all(sg == 1)) {
+    if (all(sg == 1, na.rm = TRUE)) {
       rval <- 0
       return(rval)
     }
@@ -178,7 +178,7 @@ subsem_wald <- function(model,
     dat$subgroup <- sg
 
     # if all participants in subgroup return 0
-    if (all(sg == 1)) {
+    if (all(sg == 1, na.rm = TRUE)) {
       rval <- 0
       return(rval)
     }
@@ -309,7 +309,7 @@ subsem_lrt <- function(model,
     dat$subgroup <- sg
 
     # if all participants in subgroup return -1
-    if (all(sg == 1)) {
+    if (all(sg == 1, na.rm = TRUE)) {
       rval <- 0
       return(rval)
     }

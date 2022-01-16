@@ -241,13 +241,12 @@ subgroupsem <- function(f_fit,
         } else {
             py_main$bw <- as.integer(bw)
         }
-
         py_run_string("result = ps.BeamSearch(beam_width=bw).execute(task)")
     } else {
         warning(
             paste(
                 "subgroupsem warning:",
-                "Currently only depth-first-search (DFS) available as algorithm."
+                "Currently only depth-first-search (DFS) and beam search are available as algorithms."
             )
         )
     }

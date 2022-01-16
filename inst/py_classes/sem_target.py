@@ -49,7 +49,7 @@ class SEM_QF(AbstractInterestingnessMeasure):
 
         variables = [str(selector.attribute_name) for selector in subgroup.selectors]
         
-        if (instances.sum() < 50):
+        if (instances.sum() < 30):
             return -1
 
         rval = f_fit(instances, variables)

@@ -297,10 +297,14 @@ subsem_lrt <- function(model,
     return(model_single_group)
   }
 
-  baselinefit <- sem(
+  baseline_args <- list(
     model = get_single_group_partable(model),
     data = data,
     se = "none"
+  )
+  baselinefit <- do.call(
+    "sem",
+    c(baseline_args, lavaan_options)
   )
 
   # Interestingness Measure in Baseline Fit

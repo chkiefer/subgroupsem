@@ -239,6 +239,8 @@ subsem_wald <- function(model,
 #' @param data a data frame
 #' @param predictors a character vector of variable names, which are used as
 #' covariates/predictors in the subgroup discovery (variables in data)
+#' @param group An additional group variable for subgroup discovery in
+#' multigroup models.
 #' @param subsem_options A list of additional options passed to the subgroupsem
 #' main function
 #' @param lavaan_options A list of additional options passed to the lavaan
@@ -270,37 +272,28 @@ subsem_wald <- function(model,
 subsem_lrt <- function(model,
                        data,
                        predictors = NULL,
+                       group = NULL,
                        subsem_options = list(),
                        lavaan_options = list()) {
 
   # Extract covariates names
   predictors <- subsem_get_predictor_names(model, data, predictors)
 
-
-  get_single_group_partable <- function(model) {
-    pt <- lavaanify(
-      model = model, ngroups = 2L,
-      # default options for sem/cfa call
-      int.ov.free = TRUE,
-      int.lv.free = FALSE,
-      auto.fix.first = TRUE,
-      auto.fix.single = TRUE,
-      auto.var = TRUE,
-      auto.cov.lv.x = TRUE,
-      auto.cov.y = TRUE,
-      auto.th = TRUE,
-      auto.delta = TRUE,
-      auto.efa = TRUE,
-      meanstructure = TRUE
-    )
-    model_single_group <- pt[pt$group == 1, ]
-    return(model_single_group)
+  if (!is.null(group)) {
+    groupvar <- as.factor(unlist(data[group]))
+    ngroups <- length(levels(groupvar)) * 2L
+    basemod <- get_multi_group_partable(model, ngroups)
+  } else {
+    ngroups <- 2L
+    basemod <- get_single_group_partable(model)
   }
 
+
   baseline_args <- list(
-    model = get_single_group_partable(model),
+    model = basemod,
     data = data,
-    se = "none"
+    se = "none",
+    group = group
   )
   baselinefit <- do.call(
     "sem",
@@ -314,12 +307,19 @@ subsem_lrt <- function(model,
   f_fit <- function(sg, dat) {
     # Add subgroup to dataset (from logical to numeric)
     sg <- as.numeric(sg)
-    dat$subgroup <- sg
 
     # if all participants in subgroup return -1
     if (all(sg == 1, na.rm = TRUE)) {
       rval <- 0
       return(rval)
+    }
+
+    # single-group or multi-group model?
+    if (is.null(group)) {
+      dat$subgroup <- sg
+    } else {
+      dat$subgroup <- apply(cbind(groupvar, sg), 1, paste, collapse = "")
+      dat$subgroup[apply(cbind(groupvar, sg), 1, anyNA)] <- NA
     }
 
     rval <- tryCatch(
@@ -383,4 +383,50 @@ subsem_get_predictor_names <- function(model, data, predictors) {
     stop("You have not correctly specified the predictor variables.")
   }
   return(predictors)
+}
+
+#' @noRd
+#' @keywords internal
+#' @importFrom lavaan lavaanify
+get_single_group_partable <- function(model) {
+  pt <- lavaanify(
+    model = model, ngroups = 2L,
+    # default options for sem/cfa call
+    int.ov.free = TRUE,
+    int.lv.free = FALSE,
+    auto.fix.first = TRUE,
+    auto.fix.single = TRUE,
+    auto.var = TRUE,
+    auto.cov.lv.x = TRUE,
+    auto.cov.y = TRUE,
+    auto.th = TRUE,
+    auto.delta = TRUE,
+    auto.efa = TRUE,
+    meanstructure = TRUE
+  )
+  model_single_group <- pt[pt$group == 1, ]
+  return(model_single_group)
+}
+
+#' @noRd
+#' @keywords internal
+#' @importFrom lavaan lavaanify
+get_multi_group_partable <- function(model, ngroups) {
+  pt <- lavaanify(
+    model = model, ngroups = ngroups,
+    # default options for sem/cfa call
+    int.ov.free = TRUE,
+    int.lv.free = FALSE,
+    auto.fix.first = TRUE,
+    auto.fix.single = TRUE,
+    auto.var = TRUE,
+    auto.cov.lv.x = TRUE,
+    auto.cov.y = TRUE,
+    auto.th = TRUE,
+    auto.delta = TRUE,
+    auto.efa = TRUE,
+    meanstructure = TRUE
+  )
+  model_multi_group <- pt[pt$group %in% c(1:(ngroups / 2)), ]
+  return(model_multi_group)
 }

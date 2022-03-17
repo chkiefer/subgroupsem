@@ -8,6 +8,7 @@ subsem_lrt(
   model,
   data,
   predictors = NULL,
+  group = NULL,
   subsem_options = list(),
   lavaan_options = list()
 )
@@ -19,6 +20,9 @@ subsem_lrt(
 
 \item{predictors}{a character vector of variable names, which are used as
 covariates/predictors in the subgroup discovery (variables in data)}
+
+\item{group}{An additional group variable for subgroup discovery in
+multigroup models.}
 
 \item{subsem_options}{A list of additional options passed to the subgroupsem
 main function}

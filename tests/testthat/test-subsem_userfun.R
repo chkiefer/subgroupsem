@@ -160,3 +160,41 @@ test_that("passing_options_works", {
   summary(m1)
   expect_equal(1, 1)
 })
+
+
+
+
+test_that("subsem_multigroup_lrt_works", {
+  # Define lavaan model
+  model <- "
+eta1 =~ NA*x1 + x2 + x3
+eta2 =~ NA*x4 + x5 + x6
+eta3 =~ NA*x7 + x8 + x9
+eta1 ~~ 1*eta1
+eta2 ~~ 1*eta2
+eta3 ~~ 1*eta3
+eta1 + eta2 + eta3 ~ 0*1
+"
+  # Pass model, data and names of predictors to function
+  m1 <- subsem_lrt(
+    model = model,
+    data = lavaan::HolzingerSwineford1939,
+    predictors = c("school", "grade"),
+    group = "sex",
+    lavaan_options = list(warn = FALSE),
+    subsem_options = list(min_subgroup_size = 50L)
+  )
+
+  # Are the interestingness measures right?
+  qf <- m1@summary_statistics$quality
+  qf_comp <- c(
+    151.0604, 151.0604,
+    127.1631
+  )
+  expect_equal(qf, qf_comp, tolerance = 1e-5)
+
+  # Do the subgroup sizes match?
+  size_sg <- m1@summary_statistics$size_sg
+  size_sg_comp <- c(156, 145, 65)
+  expect_equal(size_sg, size_sg_comp)
+})

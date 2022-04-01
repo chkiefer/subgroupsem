@@ -130,6 +130,8 @@ subsem <- function(model,
 #' Wald test. (a character vector)
 #' @param predictors a character vector of variable names, which are used as
 #' covariates/predictors in the subgroup discovery (variables in data)
+#' @param group An additional group variable for subgroup discovery in
+#' multigroup models.
 #' @param subsem_options A list of additional options passed to the subgroupsem
 #' main function
 #' @param lavaan_options A list of additional options passed to the lavaan
@@ -170,21 +172,36 @@ subsem_wald <- function(model,
                         data,
                         constraints,
                         predictors = NULL,
+                        group = NULL,
                         subsem_options = list(),
                         lavaan_options = list()) {
 
   # Extract covariates names
   predictors <- subsem_get_predictor_names(model, data, predictors)
 
+  if (!is.null(group)) {
+    groupvar <- as.factor(unlist(data[group]))
+  }
+
   f_fit <- function(sg, dat) {
     # Add subgroup to dataset (from logical to numeric)
     sg <- as.numeric(sg)
-    dat$subgroup <- sg
 
     # if all participants in subgroup return 0
     if (all(sg == 1, na.rm = TRUE)) {
       rval <- 0
       return(rval)
+    }
+
+    # single-group or multi-group model?
+    if (is.null(group)) {
+      dat$subgroup <- sg
+    } else {
+      dat$subgroup <- apply(cbind(groupvar, sg), 1, paste, collapse = "")
+      dat$subgroup[apply(cbind(groupvar, sg), 1, anyNA)] <- NA
+
+      # re-order, so that order of groups is always clearly determined
+      dat <- dat[order(dat$subgroup), ]
     }
 
     rval <- tryCatch(

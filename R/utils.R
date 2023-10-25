@@ -27,7 +27,7 @@ subgroupsem_ready <- function(ask=FALSE) {
         py_main$pkg_resources <- import("pkg_resources")
         py_run_string("from importlib import reload")
         py_run_string("reload(pkg_resources)")
-        py_main$pkg_resources$get_distribution("pysubgroup")$version == "0.7.2"
+        py_main$pkg_resources$get_distribution("pysubgroup")$version == "0.7.8"
     }, error = function(e) {
         FALSE
     })

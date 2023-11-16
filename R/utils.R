@@ -27,7 +27,7 @@ subgroupsem_ready <- function(ask=FALSE) {
         py_main$pkg_resources <- import("pkg_resources")
         py_run_string("from importlib import reload")
         py_run_string("reload(pkg_resources)")
-        py_main$pkg_resources$get_distribution("pysubgroup")$version == "0.7.2"
+        py_main$pkg_resources$get_distribution("pysubgroup")$version == "0.7.8"
     }, error = function(e) {
         FALSE
     })
@@ -35,7 +35,7 @@ subgroupsem_ready <- function(ask=FALSE) {
     if (!installed && ask) {
         if (readline(prompt="Python module 'pysubgroup' not installed. Do you want to install now? (y/n) ") == tolower("y")) {
             cat("Installing pysubgroup...\n")
-            py_install("pysubgroup==0.7.2", pip = T)
+            py_install("pysubgroup==0.7.8", pip = T)
             cat("Installing pysubgroup... Done\n")
             return(TRUE)
         } else {

@@ -117,7 +117,6 @@ subgroupsem <- function(f_fit,
                         bw = NULL,
                         verbose = FALSE,
                         ...) {
-
     # Some lines to check, whether reticulate / Python is set up correctly...
     if (!((status <- subgroupsem_ready(ask = T)) == TRUE)) {
         stop(status)
@@ -255,6 +254,8 @@ subgroupsem <- function(f_fit,
     # Import results
     obj@time_elapsed <- end - start
     obj@summary_statistics <- py_main$result$to_dataframe()
+
+    object@summary_statistics$subgroup <- sapply(object@summary_statistics$subgroup, as.character)
 
     # At last try to remove everything on the Python site from memory
     clean_up_python()

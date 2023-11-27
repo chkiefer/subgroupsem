@@ -17,8 +17,8 @@ setClass(
 setMethod(
     "summary", signature(object = "subgroupsem"),
     function(object) {
-        object@summary_statistics$subgroup <- sapply(object@summary_statistics$subgroup, as.character)
-        
+        # object@summary_statistics$subgroup <- sapply(object@summary_statistics$subgroup, as.character)
+
         cat("General information:")
         cat("\n")
 

@@ -255,7 +255,7 @@ subgroupsem <- function(f_fit,
     obj@time_elapsed <- end - start
     obj@summary_statistics <- py_main$result$to_dataframe()
 
-    object@summary_statistics$subgroup <- sapply(object@summary_statistics$subgroup, as.character)
+    obj@summary_statistics$subgroup <- sapply(obj@summary_statistics$subgroup, as.character)
 
     # At last try to remove everything on the Python site from memory
     clean_up_python()

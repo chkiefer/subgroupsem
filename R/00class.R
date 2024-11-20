@@ -7,6 +7,7 @@ setClass(
     "subgroupsem",
     representation(
         call = "call",
+        groups_visited = "integer",
         time_elapsed = "difftime",
         summary_statistics = "data.frame"
     )

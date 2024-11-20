@@ -194,8 +194,8 @@ subgroupsem <- function(f_fit,
                 paste(selectors, collapse = " AND ")
             )
             cat(msg)
-            subsem_county <<- subsem_county + 1L
         }
+        subsem_county <<- subsem_county + 1L
 
         ## pass sg and dat to user specified function
         return(f_fit(sg, dat))
@@ -252,6 +252,7 @@ subgroupsem <- function(f_fit,
     end <- Sys.time()
 
     # Import results
+    obj@groups_visited <- subsem_county
     obj@time_elapsed <- end - start
     obj@summary_statistics <- py_main$result$to_dataframe()
 

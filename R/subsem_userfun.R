@@ -84,10 +84,9 @@ subsem <- function(model,
     } else {
       dat$subgroup <- apply(cbind(groupvar, sg), 1, paste, collapse = "")
       dat$subgroup[apply(cbind(groupvar, sg), 1, anyNA)] <- NA
-
-      # re-order, so that order of groups is always clearly determined
-      dat <- dat[order(dat$subgroup), ]
     }
+    # re-order, so that order of groups is always clearly determined
+    dat <- dat[order(dat$subgroup), ]
 
     rval <- tryCatch(
       {
@@ -135,7 +134,6 @@ subsem <- function(model,
   cat("Done.\n")
   return(task)
 }
-
 
 
 #' @export
@@ -192,7 +190,6 @@ subsem_wald <- function(model,
                         group = NULL,
                         subsem_options = list(),
                         lavaan_options = list()) {
-
   # Extract covariates names
   predictors <- subsem_get_predictor_names(model, data, predictors)
 
@@ -216,10 +213,9 @@ subsem_wald <- function(model,
     } else {
       dat$subgroup <- apply(cbind(groupvar, sg), 1, paste, collapse = "")
       dat$subgroup[apply(cbind(groupvar, sg), 1, anyNA)] <- NA
-
-      # re-order, so that order of groups is always clearly determined
-      dat <- dat[order(dat$subgroup), ]
     }
+    # re-order, so that order of groups is always clearly determined
+    dat <- dat[order(dat$subgroup), ]
 
     rval <- tryCatch(
       {
@@ -309,7 +305,6 @@ subsem_lrt <- function(model,
                        group = NULL,
                        subsem_options = list(),
                        lavaan_options = list()) {
-
   # Extract covariates names
   predictors <- subsem_get_predictor_names(model, data, predictors)
 
@@ -355,6 +350,9 @@ subsem_lrt <- function(model,
       dat$subgroup <- apply(cbind(groupvar, sg), 1, paste, collapse = "")
       dat$subgroup[apply(cbind(groupvar, sg), 1, anyNA)] <- NA
     }
+
+    # re-order, so that order of groups is always clearly determined
+    dat <- dat[order(dat$subgroup), ]
 
     rval <- tryCatch(
       {
